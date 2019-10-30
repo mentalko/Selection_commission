@@ -22,23 +22,27 @@ class Main(tk.Frame):
 
         toolbar = tk.Frame(bg='#d7d8e0', bd=2)
         toolbar.pack(side=tk.TOP, fill=tk.X)
+        toolbar2 = tk.Frame(bg='#d7d8e0', bd=2)
+        toolbar2.pack(side=tk.TOP, fill=tk.BOTH)
 
-        btn_open_dialog = tk.Button(toolbar, text='Add |', command=self.open_dialog, bg='#d7d8e0', bd=0, compound=tk.TOP)
-        btn_edit_dialog = tk.Button(toolbar, text=' Edit |', bg='#d7d8e0', bd=0, compound=tk.TOP, command=self.open_update_dialog)
-        btn_delete = tk.Button(toolbar, text=' Delete', bg='#d7d8e0', bd=0, compound=tk.TOP, command=self.delete_records)
+        btn_open_dialog = tk.Button(toolbar, text='Добавить  |', command=self.open_dialog, bg='#d7d8e0', bd=0, compound=tk.TOP)
+        btn_edit_dialog = tk.Button(toolbar, text='  Редактировать  |', bg='#d7d8e0', bd=0, compound=tk.TOP, command=self.open_update_dialog)
+        btn_delete = tk.Button(toolbar, text='  Удалить  |', bg='#d7d8e0', bd=0, compound=tk.TOP, command=self.delete_records)
+        btn_add_spec = tk.Button(toolbar, text='  Добавить Специальность  |', bg='#d7d8e0', bd=0, compound=tk.TOP, command='')
         self.cbox_all_spec = ttk.Combobox(toolbar, cursor="fleur", width= 50, state='readonly')
         self.cbox_all_spec.bind("<<ComboboxSelected>>",  lambda event: self.view_records(self.cbox_all_spec.get()))
-        e_search = tk.Entry(toolbar, width = 100)
+        e_search = tk.Entry(toolbar2, width = 100)
 
-        for c in (btn_open_dialog,btn_edit_dialog, btn_delete, self.cbox_all_spec, e_search):
+        for c in (btn_open_dialog,btn_edit_dialog, btn_delete, btn_add_spec, self.cbox_all_spec):
             c.pack(side=tk.LEFT)
-
-        self.tree = ttk.Treeview(self, columns=clmn_names,height=15, show='headings')
+        e_search.pack(side=tk.TOP, fill=tk.X)
+        self.tree = ttk.Treeview(toolbar2, columns=clmn_names,height=50, show='headings')
         for indx in range(len(clmn_names)):
-            self.tree.column(clmn_names[indx], width=clmn_width[indx], anchor=tk.CENTER)
+            self.tree.column(clmn_names[indx], width=clmn_width[indx])
             self.tree.heading(clmn_names[indx], text=clmn_names[indx])
-        self.tree.pack()
+        self.tree.pack( fill=tk.BOTH, expand = True, anchor='w')
         self.tree.bind("<Double-1>", lambda event: self.full_info())
+
 
     def full_info(self):
         print(self.tree.set(self.tree.selection()[0]))
@@ -61,17 +65,9 @@ class Main(tk.Frame):
         [self.tree.delete(i) for i in self.tree.get_children()]
         [self.tree.insert('', 'end', values=row) for row in self.db.c.fetchall()]\
 
-
-
     def add_records(self, *args):
         self.db.insert_data(args)
         self.view_records()
-
-    # def update_record(self, description, costs, total):
-    #     self.db.c.execute('''update abiturients set description=?, costs=?, total=? where ID=?''',
-    #                       (description, costs, total, self.tree.set(self.tree.selection()[0], '#1')))
-    #     self.db.conn.commit()
-    #     self.view_records()
 
     def delete_records(self):
         for selection_item in self.tree.selection():
@@ -83,25 +79,29 @@ class Main(tk.Frame):
         Child(root,app,db)
 
     def open_update_dialog(self):
-        Update()
+        pass
+    # def update_record(self, description, costs, total):
+    #     self.db.c.execute('''update abiturients set description=?, costs=?, total=? where ID=?''',
+    #                       (description, costs, total, self.tree.set(self.tree.selection()[0], '#1')))
+    #     self.db.conn.commit()
+    #     self.view_records()
 
-class Update(Child):
-    def __init__(self):
-        super().__init__()
-        self.init_edit()
-        self.view = app
-
-    def init_edit(self):
-        self.entry_description.insert(0, self.tree.selection()[0], '#2')
-
-        self.title('Edit position')
-        btn_edit = ttk.Button(self, text='Edit')
-        btn_edit.place(x=205, y=170)
-        btn_edit.bind('<Button-1>', lambda event: self.view.update_record(self.entry_description.get(),
-                                                                          self.combobox.get(),
-                                                                          self.entry_money.get()))
-        self.btn_ok.destroy()
-
+# class Update(Child):
+#     def __init__(self):
+#         super().__init__()
+#         self.init_edit()
+#         self.view = app
+#
+#     def init_edit(self):
+#         self.entry_description.insert(0, self.tree.selection()[0], '#2')
+#         self.title('Edit position')
+#         btn_edit = ttk.Button(self, text='Edit')
+#         btn_edit.place(x=205, y=170)
+#         btn_edit.bind('<Button-1>', lambda event: self.view.update_record(self.entry_description.get(),
+#                                                                           self.combobox.get(),
+#                                                                           self.entry_money.get()))
+#         self.btn_ok.destroy()
+#
 
 
 class DB:
@@ -117,14 +117,9 @@ class DB:
         #IF NOT EXISTS
     def insert_data(self, *args):
         print('SQL ', args)
-        self.c.execute('''INSERT INTO abiturients VALUES (NULL,?,?,?,?,?,?,?,?)''',
+        self.c.execute('''INSERT INTO abiturients VALUES (NULL,?,?,?,?,?,?,?,? ,?,?,?,?,?,?)''',
                        args[0])
         self.conn.commit()
-
-
-
-
-
 
 if __name__ == "__main__":
 
@@ -133,6 +128,7 @@ if __name__ == "__main__":
     app = Main(root)
     app.pack()
     root.title("Приемная комисия")
-    root.geometry("650x450+300+200")
-    root.resizable(False, False)
+    root.geometry("850x650+200+50")
+
+    root.resizable(True, True)
     root.mainloop()
