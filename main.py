@@ -4,7 +4,6 @@ from tkinter import ttk, IntVar
 import sqlite3, configobj
 from tkcalendar import DateEntry
 from datetime import date
-import forDBCollege_support
 from tkinter import messagebox
 
 from Child_window import Child
