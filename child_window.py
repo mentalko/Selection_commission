@@ -1,6 +1,6 @@
 import sys
 import tkinter as tk
-from tkinter import ttk, IntVar
+from tkinter import ttk, IntVar, StringVar
 import sqlite3, configobj
 from tkcalendar import DateEntry
 from datetime import date
@@ -11,50 +11,44 @@ class Child(tk.Toplevel):
 
     # region >>>>>> CHILD <<<<<
     def __init__(self, root, app, db):
+        self.title_value = StringVar()
+        self.title_value.set("Добавление абитуриента")
         super().__init__(root)
         self.init_child()
         self.view = app
         self.db = db
         self.click_radiobtn()
-        # inifile = 'config.ini'
-        # self.config = configobj.ConfigObj(inifile)
-        # variable = self.config['Variables']
-        # value = self.config['Values']
 
-        self.b_add.bind('<Button-1>', lambda event: self.view.add_records(self.e_SI.get(),
+
+
+        self.b_add.bind('<Button-1>', lambda event: self.view.add_records(self.date_of_registration.get(),
+                                                                          self.e_SI.get(),
                                                                           self.e_SF.get(),
                                                                           self.e_SO.get(),
                                                                           self.e_phone.get(),
-                                                                          self.date_of_registration.get(),
+                                                                          self.rb_onbase_value.get(),
                                                                           self.e_avgball.get().replace(',', '.'),
-                                                                          self.rb_value.get(),
+                                                                          self.e_mark1.get(),
+                                                                          self.e_mark2.get(),
+
                                                                           self.get_cbox_id(self.cbox_spec.get()),
                                                                           self.e_pasportNumber.get(),
                                                                           self.cbox_gender.get(),
                                                                           self.cbox_ctzn.get(),
                                                                           self.date_of_pasport_release.get(),
                                                                           self.date_of_birth.get(),
-                                                                          self.e_address.get(1.0, tk.END)))
+                                                                          self.e_address.get(1.0, tk.END),
+                                                                          self.e_attestNumb.get(),
+                                                                          self.e_attestYear.get()))
         # self.b_cancel.bind('<Button-1>', lambda event: messagebox.showinfo("Стоп", "Остановись!") )
         self.b_cancel.bind('<Button-1>', lambda event: print(self.get_cbox_id(self.cbox_spec.get())))
 
-    def click_radiobtn(self):
-        self.cbox_spec.selection_clear()  ############## not working
-        self.specialty = dict(self.db.c.execute(
-            'select id, SpecName from specialty where speconbase = ' + str(self.rb_value.get())).fetchall())
-        self.cbox_spec['values'] = list(self.specialty.values())
-        print(self.specialty.values())
-
-    def get_cbox_id(self, selected_str):
-        for k, v in self.specialty.items():
-            if v == selected_str:
-                return k
 
     def init_child(self):
-        self.rb_value = IntVar()
-        self.rb_value.set(9)
+        self.rb_onbase_value = IntVar()
+        self.rb_onbase_value.set(9)
 
-        self.title("Добавление абитуриента")
+        self.title( self.title_value.get())
         self.geometry("739x450+339+86")
         self.resizable(False, False)
 
@@ -92,10 +86,6 @@ class Child(tk.Toplevel):
             i += 1
 
 
-
-
-
-
         self.date_of_registration = DateEntry(self, date_pattern='DD.MM.YYYY', width=12, background='gray90',
                                               foreground='black')
         self.date_of_registration.place(relx=0.162, rely=0.022, relheight=0.047, relwidth=0.217)
@@ -108,27 +98,34 @@ class Child(tk.Toplevel):
         self.e_phone = tk.Entry(self.Labelframe1, font="TkFixedFont")
         self.e_phone.place(relx=0.652, rely=0.24, height=20, relwidth=0.238 , bordermode='ignore')
 
+        self.e_attestNumb = tk.Entry(self.tkTab_2, font="TkFixedFont")
+        self.e_attestNumb.place(relx=0.167, rely=0.1, height=20, relwidth=0.212)
         self.e_avgball = tk.Entry(self.tkTab_2, font="TkFixedFont")
-        self.e_avgball.place(relx=0.167, rely=0.1, height=20, relwidth=0.112)
+        self.e_avgball.place(relx=0.167, rely=0.3, height=20, relwidth=0.112)
+        self.e_attestYear = tk.Entry(self.tkTab_2, font="TkFixedFont")
+        self.e_attestYear.place(relx=0.667, rely=0.1, height=20, relwidth=0.112)
 
-        self.rad_btn9 = ttk.Radiobutton(self.tkTab_0, text='''9 классов''', variable=self.rb_value, value=9,command=self.click_radiobtn)
+        self.rad_btn9 = ttk.Radiobutton(self.tkTab_0, text='''9 классов''', variable=self.rb_onbase_value, value=9,command=self.click_radiobtn)
         self.rad_btn9.place(relx=0.106, rely=0.05, relheight=0.125, relwidth=0.123)
-        self.rad_btn11 = tk.Radiobutton(self.tkTab_0, background="#d9d9d9", text='''11 классов''',variable=self.rb_value, value=11, command=self.click_radiobtn)
+        self.rad_btn11 = tk.Radiobutton(self.tkTab_0, background="#d9d9d9", text='''11 классов''',variable=self.rb_onbase_value, value=11, command=self.click_radiobtn)
         self.rad_btn11.place(relx=0.242, rely=0.05, relheight=0.125, relwidth=0.132)
 
         self.cbox_spec = ttk.Combobox(self.tkTab_0, cursor="fleur", state='readonly')
         self.cbox_spec.place(relx=0.273, rely=0.2, relheight=0.105, relwidth=0.400)
+        self.e_mark1 = tk.Entry(self.tkTab_0, font="TkFixedFont")
+        self.e_mark1.place(relx=0.4, rely=0.4, height=20, relwidth=0.05)
+        self.e_mark2 = tk.Entry(self.tkTab_0, font="TkFixedFont")
+        self.e_mark2.place(relx=0.4, rely=0.6, height=20, relwidth=0.05)
 
         self.e_pasportNumber = tk.Entry(self.tkTab_1)
         self.e_pasportNumber.place(relx=0.197, rely=0.1, height=20, relwidth=0.248)
-        self.e_pasportNumber.configure(background="red")
         self.date_of_pasport_release  = DateEntry(self.tkTab_1, date_pattern='DD.MM.YYYY', width=12, foreground='black')
         self.date_of_pasport_release.place(relx=0.662, rely=0.1, height=20, relwidth=0.248)
         self.date_of_pasport_release.configure(background="yellow")
 
-        self.cbox_gender = ttk.Combobox(self.tkTab_1, takefocus="", values=('муж','жен'))
+        self.cbox_gender = ttk.Combobox(self.tkTab_1, takefocus="", values=('муж','жен'), state='readonly')
         self.cbox_gender.place(relx=0.197, rely=0.25, relheight=0.105, relwidth=0.242)
-        self.cbox_ctzn = ttk.Combobox(self.tkTab_1, takefocus="", values=('RU','UA', 'KZ'))
+        self.cbox_ctzn = ttk.Combobox(self.tkTab_1, takefocus="", values=('RU','UA', 'KZ'), state='readonly')
         self.cbox_ctzn.place(relx=0.197, rely=0.45, relheight=0.105, relwidth=0.242)
 
         self.date_of_birth =  DateEntry(self.tkTab_1, date_pattern='DD.MM.YYYY', width=12, foreground='black')
@@ -151,6 +148,10 @@ class Child(tk.Toplevel):
         self.Label4.place(relx=0.478, rely=0.24, height=21, width=109, bordermode='ignore')
         self.Label2 = tk.Label(self.tkTab_0, background="#d9d9d9", text='''Основная специальность:''')
         self.Label2.place(relx=0.015, rely=0.2, height=21, width=149)
+        self.Label21 = tk.Label(self.tkTab_0, background="#d9d9d9", text='''Оценка первого профильного предмета:''')
+        self.Label21.place(relx=0.015, rely=0.4, height=21, width=249)
+        self.Label22 = tk.Label(self.tkTab_0, background="#d9d9d9", text='''Оценка второго профильного предмета:''')
+        self.Label22.place(relx=0.015, rely=0.6, height=21, width=249)
         self.Label2 = tk.Label(self.tkTab_1, background="#d9d9d9", text='''Серия и номер:''')
         self.Label2.place(relx=0.03, rely=0.1, height=21, width=92)
         self.Label3 = tk.Label(self, background="#d9d9d9", text='''Дата регистрации:''')
@@ -167,8 +168,14 @@ class Child(tk.Toplevel):
         self.Label6.place(relx=0.506, rely=0.25, height=21, width=89)
         self.Label7 = tk.Label(self.tkTab_1, background="#d9d9d9", text='''Адресс:''')
         self.Label7.place(relx=0.5, rely=0.4, height=21, width=42)
-        self.Label9 = tk.Label(self.tkTab_2, background="#d9d9d9", text='''Балл атестата:''')
+        self.Label9 = tk.Label(self.tkTab_2, background="#d9d9d9", text='''Номер атестата:''')
         self.Label9.place(relx=0.015, rely=0.1, height=21, width=89)
+
+        self.Label91 = tk.Label(self.tkTab_2, background="#d9d9d9", text='''Год выдачи:''')
+        self.Label91.place(relx=0.015, rely=0.3, height=21, width=89)
+
+        self.Label92 = tk.Label(self.tkTab_2, background="#d9d9d9", text='''Балл атестата:''')
+        self.Label92.place(relx=0.5, rely=0.1, height=21, width=89)
         #endregion
         self.b_add = tk.Button(self, activebackground="#ececec", activeforeground="#000000", background="#d9d9d9",
                                disabledforeground="#a3a3a3", foreground="#000000", highlightbackground="#d9d9d9",
@@ -181,5 +188,65 @@ class Child(tk.Toplevel):
 
         self.grab_set()
         self.focus_set()
+    def click_radiobtn(self):
+        self.cbox_spec.selection_clear()  ############## not working
+        self.specialty = dict(self.db.c.execute(
+            'select id, SpecName from specialty where speconbase = ' + str(self.rb_onbase_value.get())).fetchall())
+        self.cbox_spec['values'] = list(self.specialty.values())
+        print(self.specialty.values())
+
+    def get_cbox_id(self, selected_str):
+        for k, v in self.specialty.items():
+            if v == selected_str:
+                return k
 
     # endregion
+class Update(Child):
+    def __init__(self, root, app, db):
+        super().__init__( root, app, db)
+        self.init_edit()
+        self.title('Редактировать данные')
+
+
+    def init_edit(self):
+        self.entry_description.insert(0, self.tree.selection()[0], '#2')
+        self.title('Редактировать данные')
+        self.b_add = ttk.Button(self, text='Обновить')
+        self.b_add.place(x=205, y=170)
+        self.b_add.bind('<Button-1>', lambda event: self.view.update_record(self.entry_description.get(),
+                                           self.entry_money.get()))
+        self.btn_ok.destroy()
+
+class AddSpec(tk.Toplevel):
+    def __init__(self, root, app, db):
+        self.title_value = StringVar()
+        self.title_value.set("Добавление специальности")
+        super().__init__(root)
+        self.init_child()
+        self.view = app
+        self.db = db
+
+
+    def init_child(self):
+
+        self.title(self.title_value.get())
+        self.geometry("300x100+339+86")
+        self.resizable(False, False)
+        self.maxsize(1370, 753)
+
+        lbl = tk.Label(self, text='Название специальности:')
+        self.e_spec_name = tk.Entry(self, width=200)
+        lbl2 = tk.Label(self, text='На базе какого класса:')
+        self.e_spec_onbase = tk.Entry(self, width=200)
+        btn = tk.Button(self, text='Добавить', command=self.add_spec)
+        for item in (lbl, self.e_spec_name,  lbl2,self.e_spec_onbase, btn ):
+            item.pack()
+
+    def add_spec(self):
+        print('SQL ', self.e_spec_name.get(), self.e_spec_onbase.get())
+        self.conn = sqlite3.connect('commission.db')
+        self.c = self.conn.cursor()
+        self.c.execute('''INSERT INTO specialty VALUES (NULL,?,?)''',
+                       (self.e_spec_name.get(),self.e_spec_onbase.get()))
+        self.conn.commit()
+        self.destroy()
