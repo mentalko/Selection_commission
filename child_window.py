@@ -1,47 +1,36 @@
 import sys
 import tkinter as tk
 from tkinter import ttk, IntVar, StringVar
-import sqlite3, configobj
 from tkcalendar import DateEntry
-from datetime import date
-from tkinter import messagebox
+
+from Backend import Backend
+
+db = Backend()
+
+list_of_genders= ('муж','жен')
+list_of_stzens = ('RU','UA', 'KZ')
 
 
-class Child(tk.Toplevel):
+        
+class AddingWindow(tk.Toplevel):
+    
+    
 
     # region >>>>>> CHILD <<<<<
-    def __init__(self, root, app, db):
+    def __init__(self, root, app):
         self.title_value = StringVar()
         self.title_value.set("Добавление абитуриента")
         super().__init__(root)
         self.init_child()
         self.view = app
-        self.db = db
+
         self.click_radiobtn()
 
+        
 
+        self.b_add.bind('<Button-1>', lambda event: self.add_records())
+        self.b_cancel.bind('<Button-1>', lambda event: self.destroy())
 
-        self.b_add.bind('<Button-1>', lambda event: self.view.add_records(self.date_of_registration.get(),
-                                                                          self.e_SI.get(),
-                                                                          self.e_SF.get(),
-                                                                          self.e_SO.get(),
-                                                                          self.e_phone.get(),
-                                                                          self.rb_onbase_value.get(),
-                                                                          self.e_avgball.get().replace(',', '.'),
-                                                                          self.e_mark1.get(),
-                                                                          self.e_mark2.get(),
-
-                                                                          self.get_cbox_id(self.cbox_spec.get()),
-                                                                          self.e_pasportNumber.get(),
-                                                                          self.cbox_gender.get(),
-                                                                          self.cbox_ctzn.get(),
-                                                                          self.date_of_pasport_release.get(),
-                                                                          self.date_of_birth.get(),
-                                                                          self.e_address.get(1.0, tk.END),
-                                                                          self.e_attestNumb.get(),
-                                                                          self.e_attestYear.get()))
-        # self.b_cancel.bind('<Button-1>', lambda event: messagebox.showinfo("Стоп", "Остановись!") )
-        self.b_cancel.bind('<Button-1>', lambda event: print(self.get_cbox_id(self.cbox_spec.get())))
 
 
     def init_child(self):
@@ -100,19 +89,19 @@ class Child(tk.Toplevel):
 
         self.e_attestNumb = tk.Entry(self.tkTab_2, font="TkFixedFont")
         self.e_attestNumb.place(relx=0.167, rely=0.1, height=20, relwidth=0.212)
-        self.e_avgball = tk.Entry(self.tkTab_2, font="TkFixedFont")
-        self.e_avgball.place(relx=0.167, rely=0.3, height=20, relwidth=0.112)
         self.e_attestYear = tk.Entry(self.tkTab_2, font="TkFixedFont")
-        self.e_attestYear.place(relx=0.667, rely=0.1, height=20, relwidth=0.112)
+        self.e_attestYear.place(relx=0.167, rely=0.3, height=20, relwidth=0.112)
+        self.e_avgball = tk.Entry(self.tkTab_2, font="TkFixedFont")
+        self.e_avgball.place(relx=0.667, rely=0.1, height=20, relwidth=0.112)
 
         self.rad_btn9 = ttk.Radiobutton(self.tkTab_0, text='''9 классов''', variable=self.rb_onbase_value, value=9,command=self.click_radiobtn)
         self.rad_btn9.place(relx=0.106, rely=0.05, relheight=0.125, relwidth=0.123)
         self.rad_btn11 = tk.Radiobutton(self.tkTab_0, background="#d9d9d9", text='''11 классов''',variable=self.rb_onbase_value, value=11, command=self.click_radiobtn)
-        self.rad_btn11.place(relx=0.242, rely=0.05, relheight=0.125, relwidth=0.132)
 
         self.cbox_spec = ttk.Combobox(self.tkTab_0, cursor="fleur", state='readonly')
         self.cbox_spec.place(relx=0.273, rely=0.2, relheight=0.105, relwidth=0.400)
         self.e_mark1 = tk.Entry(self.tkTab_0, font="TkFixedFont")
+        self.rad_btn11.place(relx=0.242, rely=0.05, relheight=0.125, relwidth=0.132)
         self.e_mark1.place(relx=0.4, rely=0.4, height=20, relwidth=0.05)
         self.e_mark2 = tk.Entry(self.tkTab_0, font="TkFixedFont")
         self.e_mark2.place(relx=0.4, rely=0.6, height=20, relwidth=0.05)
@@ -123,10 +112,12 @@ class Child(tk.Toplevel):
         self.date_of_pasport_release.place(relx=0.662, rely=0.1, height=20, relwidth=0.248)
         self.date_of_pasport_release.configure(background="yellow")
 
-        self.cbox_gender = ttk.Combobox(self.tkTab_1, takefocus="", values=('муж','жен'), state='readonly')
+        self.cbox_gender = ttk.Combobox(self.tkTab_1, takefocus="", values=list_of_genders, state='readonly')
         self.cbox_gender.place(relx=0.197, rely=0.25, relheight=0.105, relwidth=0.242)
-        self.cbox_ctzn = ttk.Combobox(self.tkTab_1, takefocus="", values=('RU','UA', 'KZ'), state='readonly')
+        self.cbox_gender.current(0)
+        self.cbox_ctzn = ttk.Combobox(self.tkTab_1, takefocus="", values=list_of_stzens, state='readonly')
         self.cbox_ctzn.place(relx=0.197, rely=0.45, relheight=0.105, relwidth=0.242)
+        self.cbox_ctzn.current(0)
 
         self.date_of_birth =  DateEntry(self.tkTab_1, date_pattern='DD.MM.YYYY', width=12, foreground='black')
         self.date_of_birth.place(relx=0.667, rely=0.25, height=20, relwidth=0.248)
@@ -188,43 +179,92 @@ class Child(tk.Toplevel):
 
         self.grab_set()
         self.focus_set()
-    def click_radiobtn(self):
-        self.cbox_spec.selection_clear()  ############## not working
-        self.specialty = dict(self.db.c.execute(
-            'select id, SpecName from specialty where speconbase = ' + str(self.rb_onbase_value.get())).fetchall())
-        self.cbox_spec['values'] = list(self.specialty.values())
-        print(self.specialty.values())
 
-    def get_cbox_id(self, selected_str):
-        for k, v in self.specialty.items():
+    def fields_values(self):
+        return self.date_of_registration.get(),
+        self.e_SF.get(),
+        self.e_SI.get(),
+        self.e_SO.get(),
+        self.e_phone.get(),
+        self.rb_onbase_value.get(),
+        self.e_avgball.get().replace(',', '.'),
+        self.e_mark1.get(),
+        self.e_mark2.get(),
+
+        self.get_spec_id_from_cbox(self.cbox_spec.get()),
+        self.e_pasportNumber.get(),
+        self.cbox_gender.get(),
+        self.cbox_ctzn.get(),
+        self.date_of_pasport_release.get(),
+        self.date_of_birth.get(),
+        self.e_address.get(1.0, tk.END),
+        self.e_attestNumb.get(),
+        self.e_attestYear.get()
+
+    def add_records(self):
+        db.insert_data(self.fields_values() )
+        self.view.view_records()
+        self.destroy()
+
+    def click_radiobtn(self):
+        self.cbox_spec['values'] =  list(db.return_rb_dictionary(self.rb_onbase_value.get()).values())
+
+    def get_spec_id_from_cbox(self, selected_str):
+        for k, v in db.return_rb_dictionary(self.rb_onbase_value.get()).items():
             if v == selected_str:
                 return k
 
     # endregion
-class Update(Child):
-    def __init__(self, root, app, db):
-        super().__init__( root, app, db)
+class EditingWindow(AddingWindow):
+    def __init__(self, root, app,  selected_id):
+        super().__init__( root, app, )
+        self.selected_id = selected_id
         self.init_edit()
+        self.paste_data()
         self.title('Редактировать данные')
 
 
     def init_edit(self):
-        self.entry_description.insert(0, self.tree.selection()[0], '#2')
-        self.title('Редактировать данные')
-        self.b_add = ttk.Button(self, text='Обновить')
-        self.b_add.place(x=205, y=170)
-        self.b_add.bind('<Button-1>', lambda event: self.view.update_record(self.entry_description.get(),
-                                           self.entry_money.get()))
-        self.btn_ok.destroy()
+        self.b_update = ttk.Button(self, text='Обновить')
+        self.b_update.place(relx=0.365, rely=0.911, height=24, width=63)
+        self.b_update.bind('<Button-1>', lambda event: db.update_after_editing(self.selected_id, self.fields_values()))
+        self.b_add.destroy()
 
-class AddSpec(tk.Toplevel):
-    def __init__(self, root, app, db):
+    def paste_data(self):
+        self.listOfData = db.get_data_for_editing(self.selected_id)[0]
+        self.listOfData = [' ' if x is None else x for x in self.listOfData]
+
+
+        self.date_of_registration.set_date(self.listOfData[1]); self.date_of_registration.config(date_pattern='DD.MM.YYYY')
+        self.e_SF.insert(0,self.listOfData[2])
+        self.e_SI.insert(0,self.listOfData[3])
+        self.e_SO.insert(0,self.listOfData[4])
+        self.e_phone.insert(0,self.listOfData[5])
+        self.rb_onbase_value.set(self.listOfData[6])
+        self.e_avgball.insert(0,self.listOfData[7])
+        self.e_mark1.insert(0,self.listOfData[8])
+        self.e_mark2.insert(0,self.listOfData[9])
+
+        #self.cbox_spec.current(self.cbox_spec['values'].index( self.list_of_specialties.get(self.listOfData[10]))); print(self.cbox_spec['values'])
+        self.e_pasportNumber.insert(0,self.listOfData[11])
+        self.cbox_gender.current(list_of_genders.index(self.listOfData[12]))
+        self.cbox_ctzn.current(list_of_stzens.index(self.listOfData[13]))
+        self.date_of_pasport_release.set_date(self.listOfData[14]); self.date_of_pasport_release.config(date_pattern='DD.MM.YYYY')
+        self.date_of_birth.set_date(self.listOfData[15]); self.date_of_birth.config(date_pattern='DD.MM.YYYY')
+        self.e_address.insert(1.0,self.listOfData[16])
+        self.e_attestNumb.insert(0,self.listOfData[17])
+        self.e_attestYear.insert(0,self.listOfData[18])
+
+
+class AddSpecWindow(tk.Toplevel):
+    def __init__(self, root, app):
         self.title_value = StringVar()
         self.title_value.set("Добавление специальности")
         super().__init__(root)
         self.init_child()
         self.view = app
-        self.db = db
+        self.click_radiobtn()
+
 
 
     def init_child(self):
@@ -235,18 +275,13 @@ class AddSpec(tk.Toplevel):
         self.maxsize(1370, 753)
 
         lbl = tk.Label(self, text='Название специальности:')
-        self.e_spec_name = tk.Entry(self, width=200)
+        self.e_spec_name = tk.Entry(self, width=100)
         lbl2 = tk.Label(self, text='На базе какого класса:')
-        self.e_spec_onbase = tk.Entry(self, width=200)
-        btn = tk.Button(self, text='Добавить', command=self.add_spec)
+        self.e_spec_onbase = tk.Entry(self, width=10)
+        btn = tk.Button(self, text='Добавить')
+        btn.bind('<Button-1>', lambda event: db.add_spec(self.e_spec_name.get(), self.e_spec_onbase.get()))
         for item in (lbl, self.e_spec_name,  lbl2,self.e_spec_onbase, btn ):
             item.pack()
 
-    def add_spec(self):
-        print('SQL ', self.e_spec_name.get(), self.e_spec_onbase.get())
-        self.conn = sqlite3.connect('commission.db')
-        self.c = self.conn.cursor()
-        self.c.execute('''INSERT INTO specialty VALUES (NULL,?,?)''',
-                       (self.e_spec_name.get(),self.e_spec_onbase.get()))
-        self.conn.commit()
-        self.destroy()
+
+
