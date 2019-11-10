@@ -6,7 +6,7 @@ from datetime import date
 from tkinter import messagebox
 
 from child_window import *
-from Backend import Backend
+from backend import Backend
 
 db = Backend()
 
